@@ -102,7 +102,7 @@ export default function ClientsPanel() {
             <input value={creating.phone} onChange={(e) => setCreating(f => ({ ...f, phone: e.target.value }))} />
           </div>
           <div className="full">
-            <label>Dirección</label>
+            <label>Ruta</label>
             <input value={creating.address} onChange={(e) => setCreating(f => ({ ...f, address: e.target.value }))} />
           </div>
           <div className="full">
