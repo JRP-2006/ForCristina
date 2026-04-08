@@ -4,6 +4,8 @@ import ProductsPanel from "./panels/ProductsPanel.jsx";
 import ClientsPanel from "./panels/ClientsPanel.jsx";
 import BillingPanel from "./panels/BillingPanel.jsx";
 import ReportsPanel from "./panels/ReportsPanel.jsx";
+// arriba de frontend/src/App.jsx (junto con los otros imports)
+import { API_URL } from "./api";
 
 export default function App() {
   const [token, setTokenState] = useState(getToken());
@@ -231,9 +233,10 @@ export default function App() {
 
               <div className="login-meta">
                 <span className="muted">Mes:</span> {monthLabel} •{" "}
-                import { API_URL } from "./api"; // arriba del archivo (si no está)
+                
 
 ...
+<span className="muted">API:</span> <code>{API_URL}</code>
 
 <span className="muted">API:</span> <code>{API_URL}</code>
               </div>
