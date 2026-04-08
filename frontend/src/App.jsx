@@ -237,8 +237,6 @@ export default function App() {
 
 ...
 <span className="muted">API:</span> <code>{API_URL}</code>
-
-<span className="muted">API:</span> <code>{API_URL}</code>
               </div>
             </form>
           </div>
