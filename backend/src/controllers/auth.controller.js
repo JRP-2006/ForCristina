@@ -9,7 +9,7 @@ export async function login(req, res) {
   }
 
   const admin = db
-    .prepare("SELECT id, email, password_hash, name FROM admins WHERE email = ? LIMIT 1")
+    .prepare("SELECT id, tenant_id, email, password_hash, name FROM admins WHERE email = ? LIMIT 1")
     .get(email);
 
   if (!admin) return res.status(401).json({ message: "Invalid credentials" });
@@ -20,13 +20,18 @@ export async function login(req, res) {
   const secret = process.env.JWT_SECRET || "dev_secret_change_me";
 
   const token = jwt.sign(
-    { adminId: admin.id, email: admin.email, name: admin.name },
+    {
+      adminId: admin.id,
+      tenantId: admin.tenant_id,
+      email: admin.email,
+      name: admin.name,
+    },
     secret,
     { expiresIn: "7d" }
   );
 
   res.json({
     token,
-    admin: { id: admin.id, email: admin.email, name: admin.name },
+    admin: { id: admin.id, tenantId: admin.tenant_id, email: admin.email, name: admin.name },
   });
 }

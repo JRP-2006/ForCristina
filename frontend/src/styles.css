@@ -92,7 +92,8 @@ input:focus, select:focus {
 .stat-subtitle { font-size: 12px; opacity: .75; margin-top: 4px; }
 
 @media (max-width: 900px) {
-  .grid-2, .grid-3, .stats { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: 1fr; }
+  
 }
 
 /* ===== Ticket (factura estilo recibo) ===== */
@@ -282,4 +283,56 @@ input:focus, select:focus {
 @media (max-width: 920px){
   .login-shell{ grid-template-columns: 1fr; max-width: 520px; }
   .login-right{ display:none; }
+  
+  
+}
+/* ===== BillingPanel: líneas de productos en horizontal ===== */
+.billing-line {
+  display: grid;
+  grid-template-columns: minmax(240px, 2.2fr) 140px 180px 120px;
+  gap: 16px;
+  align-items: start;       /* antes end */
+  margin: 12px 0;
+}
+
+.billing-line > div {
+  min-width: 0;            /* evita overflow raro */
+}
+
+.billing-line label {
+  margin-bottom: 6px;
+}
+
+.billing-line input,
+.billing-line select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Subtotal bajo el precio, sin “mover” la fila */
+.billing-line .line-subtotal {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+/* Botón a la derecha, alineado con los inputs */
+.billing-line .line-actions {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.billing-line .line-actions button {
+  width: 100%;
+}
+
+/* En pantallas pequeñas sí se apila */
+@media (max-width: 900px) {
+  .billing-line {
+    grid-template-columns: 1fr;
+  }
+  .billing-line .line-actions button {
+    width: auto;
+  }
 }

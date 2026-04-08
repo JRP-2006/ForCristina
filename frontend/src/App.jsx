@@ -9,7 +9,9 @@ export default function App() {
   const [token, setTokenState] = useState(getToken());
   const [tab, setTab] = useState("products");
 
-  // login state
+  // auth state
+  const [authMode, setAuthMode] = useState("login"); // "login" | "register"
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("admin@confites.local");
   const [password, setPassword] = useState("admin123");
   const [loading, setLoading] = useState(false);
@@ -35,16 +37,25 @@ export default function App() {
     setTokenState(getToken());
   }, []);
 
-  async function login(e) {
+  async function onSubmitAuth(e) {
     e.preventDefault();
     setError("");
     setLoading(true);
+
     try {
+      if (authMode === "register") {
+        if (!name.trim()) {
+          throw new Error("El nombre es requerido para crear la cuenta.");
+        }
+        await api.registerAdmin({ name: name.trim(), email, password });
+      }
+
       const res = await api.login({ email, password });
       setToken(res.token);
       setTokenState(res.token);
-    } catch (e) {
-      setError(e.message);
+      // company se cargará por el useEffect de token
+    } catch (e2) {
+      setError(e2.message);
     } finally {
       setLoading(false);
     }
@@ -54,10 +65,19 @@ export default function App() {
     clearToken();
     setTokenState("");
     setCompany(undefined);
+
     setCompanyName("");
     setRut("");
     setCompanyPhone("");
     setCompanyAddress("");
+
+    setTab("products");
+
+    // opcional: limpiar auth inputs
+    // setName("");
+    // setEmail("");
+    // setPassword("");
+    setAuthMode("login");
   }
 
   // load company once logged in
@@ -123,7 +143,7 @@ export default function App() {
     }
   }
 
-  // 1) LOGIN
+  // 1) LOGIN / REGISTER
   if (!token) {
     return (
       <div className="login-page pro">
@@ -137,12 +157,45 @@ export default function App() {
               </div>
             </div>
 
-            <h1 className="login-h1">Iniciar sesión</h1>
+            <div className="tabs" style={{ marginTop: 0 }}>
+              <button
+                type="button"
+                className={authMode === "login" ? "active" : ""}
+                onClick={() => setAuthMode("login")}
+              >
+                Iniciar sesión
+              </button>
+              <button
+                type="button"
+                className={authMode === "register" ? "active" : ""}
+                onClick={() => setAuthMode("register")}
+              >
+                Crear cuenta
+              </button>
+            </div>
+
+            <h1 className="login-h1">
+              {authMode === "login" ? "Iniciar sesión" : "Crear cuenta"}
+            </h1>
             <p className="login-p">
-              Accede para administrar productos, clientes, facturación y reportes.
+              {authMode === "login"
+                ? "Accede para administrar productos, clientes, facturación y reportes."
+                : "Crea tu cuenta. Se creará una empresa (tenant) nueva para ti."}
             </p>
 
-            <form onSubmit={login} className="login-form pro">
+            <form onSubmit={onSubmitAuth} className="login-form pro">
+              {authMode === "register" && (
+                <div className="field">
+                  <label>Nombre</label>
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Ej: Juan Esteban"
+                    autoComplete="name"
+                  />
+                </div>
+              )}
+
               <div className="field">
                 <label>Email</label>
                 <input
@@ -160,14 +213,20 @@ export default function App() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  autoComplete="current-password"
+                  autoComplete={authMode === "login" ? "current-password" : "new-password"}
                 />
               </div>
 
               {error && <div className="error">{error}</div>}
 
               <button className="btn pro-login-btn" disabled={loading}>
-                {loading ? "Entrando..." : "Entrar"}
+                {loading
+                  ? authMode === "login"
+                    ? "Entrando..."
+                    : "Creando..."
+                  : authMode === "login"
+                  ? "Entrar"
+                  : "Crear cuenta"}
               </button>
 
               <div className="login-meta">
@@ -198,7 +257,7 @@ export default function App() {
               <h2 style={{ margin: 0 }}>Cargando...</h2>
               <div className="muted">Verificando datos de la empresa</div>
             </div>
-            <button className="btn secondary" onClick={logout}>
+            <button className="btn secondary" onClick={logout} type="button">
               Cerrar sesión
             </button>
           </div>
@@ -291,9 +350,9 @@ export default function App() {
       <div className="header">
         <div>
           <h1 style={{ margin: 0 }}>{company?.name || "ForCristina"}</h1>
-<div className="muted">Panel de administración</div>
+          <div className="muted">Panel de administración</div>
         </div>
-        <button className="btn secondary" onClick={logout}>
+        <button className="btn secondary" onClick={logout} type="button">
           Cerrar sesión
         </button>
       </div>
@@ -302,24 +361,28 @@ export default function App() {
         <button
           className={tab === "products" ? "active" : ""}
           onClick={() => setTab("products")}
+          type="button"
         >
           Productos
         </button>
         <button
           className={tab === "clients" ? "active" : ""}
           onClick={() => setTab("clients")}
+          type="button"
         >
           Clientes
         </button>
         <button
           className={tab === "billing" ? "active" : ""}
           onClick={() => setTab("billing")}
+          type="button"
         >
           Facturación
         </button>
         <button
           className={tab === "reports" ? "active" : ""}
           onClick={() => setTab("reports")}
+          type="button"
         >
           Reportes
         </button>

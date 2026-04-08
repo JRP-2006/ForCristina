@@ -41,6 +41,7 @@ export default function BillingPanel({ company }) {
     setClients(await api.listClients());
     setProducts(await api.listProducts());
   }
+
   useEffect(() => {
     load();
   }, []);
@@ -50,13 +51,17 @@ export default function BillingPanel({ company }) {
     return clients.find((c) => c.id === id) || null;
   }, [clientId, clients]);
 
-  function addItem() {
-    const first = products[0];
-    if (!first) return;
-    setItems((it) => [...it, { product_id: first.id, quantity: 1, unit_price: 1000 }]);
-  }
+function addItem() {
+  const first = products[0];
+  if (!first) return;
+  setItems((it) => [...it, { product_id: first.id, quantity: 1, unit_price: 1000 }]);
+}
 
-  function lineSubtotal(i) {
+function removeDraftItem(idx) {
+  setItems((arr) => arr.filter((_, i) => i !== idx));
+}
+
+function lineSubtotal(i) {
     return Number(i.quantity) * Number(i.unit_price);
   }
 
@@ -67,6 +72,44 @@ export default function BillingPanel({ company }) {
   function productName(product_id) {
     const p = products.find((x) => x.id === Number(product_id));
     return p ? p.name : `Producto #${product_id}`;
+  }
+
+  async function refreshInvoice(saleId = invoice?.saleId) {
+    if (!saleId) return;
+    const fresh = await api.getSale(saleId);
+    setInvoice((prev) => ({
+      ...(prev || {}),
+      saleId: fresh.id,
+      items: fresh.items || [],
+      total: fresh.total,
+      date: fresh.sale_date || fresh.created_at,
+      client: fresh.client_id ?? null,
+    }));
+  }
+
+  async function onDeleteInvoiceItem(itemId) {
+    if (!invoice?.saleId) return;
+    try {
+      await api.deleteSaleItem(invoice.saleId, itemId);
+      await refreshInvoice(invoice.saleId);
+      setProducts(await api.listProducts()); // refresca stock
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function onChangeInvoiceItemQty(itemId, qty) {
+    if (!invoice?.saleId) return;
+    const q = Number(qty);
+    if (!Number.isFinite(q) || q < 1) return;
+
+    try {
+      await api.updateSaleItemQuantity(invoice.saleId, itemId, q);
+      await refreshInvoice(invoice.saleId);
+      setProducts(await api.listProducts()); // refresca stock
+    } catch (e) {
+      alert(e.message);
+    }
   }
 
   async function submit() {
@@ -84,20 +127,19 @@ export default function BillingPanel({ company }) {
 
       const res = await api.createSale(payload);
 
-      const inv = {
-        saleId: res.id,
-        date: new Date().toLocaleString("es-CO"),
-        client: selectedClient,
-        items: payload.items.map((i) => ({
-          ...i,
-          name: productName(i.product_id),
-          subtotal: lineSubtotal(i),
-        })),
-        total: res.total,
-      };
-      setInvoice(inv);
+      // Traer la venta real (con IDs reales de sale_items)
+      const fresh = await api.getSale(res.id);
 
-      setOk(`Factura creada. ID: ${res.id} Total: ${moneyCOP(res.total)}`);
+      setInvoice({
+        saleId: fresh.id,
+        date: fresh.sale_date || fresh.created_at,
+        client: fresh.client_id ?? null,
+        items: fresh.items || [],
+        total: fresh.total,
+      });
+
+      setOk(`Factura creada. ID: ${fresh.id} Total: ${moneyCOP(fresh.total)}`);
+
       setItems([]);
       setProducts(await api.listProducts()); // refresca stock
     } catch (e) {
@@ -205,7 +247,7 @@ export default function BillingPanel({ company }) {
               ))}
             </select>
             <div className="muted" style={{ marginTop: 6 }}>
-              Tip: Para WhatsApp, el cliente debe tener teléfono (ideal: 10 dígitos o con +57).
+              Consejo: Si quieres mandar factura por whatsapp al cliente, asegúrate de agregar su teléfono en Clientes.
             </div>
           </div>
         </div>
@@ -216,59 +258,66 @@ export default function BillingPanel({ company }) {
 
         <div style={{ height: 12 }} />
 
-        {items.map((it, idx) => (
-          <div key={idx} className="grid grid-3">
-            <div>
-              <label>Producto</label>
-              <select
-                value={it.product_id}
-                onChange={(e) =>
-                  setItems((arr) =>
-                    arr.map((x, i) => (i === idx ? { ...x, product_id: e.target.value } : x))
-                  )
-                }
-              >
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} (stock {p.stock})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label>Cantidad</label>
-              <input
-                type="number"
-                min="1"
-                value={it.quantity}
-                onChange={(e) =>
-                  setItems((arr) =>
-                    arr.map((x, i) => (i === idx ? { ...x, quantity: e.target.value } : x))
-                  )
-                }
-              />
-            </div>
-
-            <div>
-              <label>Precio venta (COP)</label>
-              <input
-                type="number"
-                step="1"
-                min="0"
-                value={it.unit_price}
-                onChange={(e) =>
-                  setItems((arr) =>
-                    arr.map((x, i) => (i === idx ? { ...x, unit_price: e.target.value } : x))
-                  )
-                }
-              />
-              <div className="muted" style={{ marginTop: 6 }}>
-                Subtotal: {moneyCOP(lineSubtotal(it))}
-              </div>
-            </div>
-          </div>
+{items.map((it, idx) => (
+  <div key={idx} className="billing-line">
+    <div>
+      <label>Producto</label>
+      <select
+        value={it.product_id}
+        onChange={(e) =>
+          setItems((arr) =>
+            arr.map((x, i) => (i === idx ? { ...x, product_id: e.target.value } : x))
+          )
+        }
+      >
+        {products.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.name} (stock {p.stock})
+          </option>
         ))}
+      </select>
+    </div>
+
+    <div>
+      <label>Cantidad</label>
+      <input
+        type="number"
+        min="1"
+        value={it.quantity}
+        onChange={(e) =>
+          setItems((arr) =>
+            arr.map((x, i) => (i === idx ? { ...x, quantity: e.target.value } : x))
+          )
+        }
+      />
+    </div>
+
+    <div>
+      <label>Precio venta (COP)</label>
+      <input
+        type="number"
+        step="1"
+        min="0"
+        value={it.unit_price}
+        onChange={(e) =>
+          setItems((arr) =>
+            arr.map((x, i) => (i === idx ? { ...x, unit_price: e.target.value } : x))
+          )
+        }
+      />
+      <div className="muted" style={{ marginTop: 6 }}>
+        Subtotal: {moneyCOP(lineSubtotal(it))}
+      </div>
+    </div>
+
+    <div>
+      <label>Acciones</label>
+      <button className="btn secondary" onClick={() => removeDraftItem(idx)}>
+        Eliminar
+      </button>
+    </div>
+  </div>
+))}
 
         <div className="row">
           <strong>Total: {moneyCOP(total())}</strong>
@@ -330,18 +379,18 @@ export default function BillingPanel({ company }) {
 
               <div className="t-line" />
 
-              {/* CLIENTE */}
+              {/* CLIENTE (usa selectedClient porque invoice.client es client_id) */}
               <div className="t-row">
                 <div>
                   <strong>Cliente</strong>
                 </div>
-                <div style={{ textAlign: "right" }}>{invoice.client?.name || "Mostrador"}</div>
+                <div style={{ textAlign: "right" }}>{selectedClient?.name || "Mostrador"}</div>
               </div>
               <div className="t-row">
                 <div>
                   <strong>Tel</strong>
                 </div>
-                <div style={{ textAlign: "right" }}>{invoice.client?.phone || "-"}</div>
+                <div style={{ textAlign: "right" }}>{selectedClient?.phone || "-"}</div>
               </div>
 
               <div className="t-line" />
@@ -349,15 +398,34 @@ export default function BillingPanel({ company }) {
               {/* ITEMS (campo: valor) */}
               <div className="t-items">
                 {invoice.items.map((i, idx) => (
-                  <div className="t-item-card" key={idx}>
+                  <div className="t-item-card" key={i.id ?? idx}>
                     <div className="t-field">
                       <div className="t-label">Producto:</div>
-                      <div className="t-value">{i.name}</div>
+                      <div className="t-value">
+                        {i.product_name || i.name || `Producto #${i.product_id}`}
+                      </div>
                     </div>
 
                     <div className="t-field">
                       <div className="t-label">Cantidad:</div>
-                      <div className="t-value">{i.quantity}</div>
+                      <div
+                        className="t-value"
+                        style={{ display: "flex", gap: 8, alignItems: "center" }}
+                      >
+                        <input
+                          type="number"
+                          min={1}
+                          value={i.quantity}
+                          onChange={(e) => onChangeInvoiceItemQty(i.id, e.target.value)}
+                          style={{ width: 80 }}
+                        />
+                        <button
+                          className="btn secondary"
+                          onClick={() => onDeleteInvoiceItem(i.id)}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
                     </div>
 
                     <div className="t-field">

@@ -1,5 +1,6 @@
-const API_URL = "http://localhost:4000/api";
-
+// En local: usa .env con VITE_API_BASE_URL=http://localhost:4000/api
+// En producción (Vercel): Environment Variables -> VITE_API_BASE_URL=https://TU-BACKEND.onrender.com/api
+const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api";
 
 export function setToken(token) {
   localStorage.setItem("token", token);
@@ -17,7 +18,7 @@ async function request(path, options = {}) {
   const token = getToken();
   const headers = {
     "Content-Type": "application/json",
-    ...(options.headers || {})
+    ...(options.headers || {}),
   };
   if (token) headers.Authorization = `Bearer ${token}`;
 
@@ -30,11 +31,15 @@ async function request(path, options = {}) {
 }
 
 export const api = {
+  // auth
   login: ({ email, password }) =>
-  request("/auth/login", {
-    method: "POST",
-    body: JSON.stringify({ email, password }),
-  }),
+    request("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }),
+
+  registerAdmin: (data) =>
+    request("/auth/register", { method: "POST", body: JSON.stringify(data) }),
 
   // products
   listProducts: () => request("/products"),
@@ -43,7 +48,6 @@ export const api = {
   deleteProduct: (id) => request(`/products/${id}`, { method: "DELETE" }),
 
   // clients
-    // clients
   listClients: () => request("/clients"),
   createClient: (c) => request("/clients", { method: "POST", body: JSON.stringify(c) }),
   updateClient: (id, c) => request(`/clients/${id}`, { method: "PUT", body: JSON.stringify(c) }),
@@ -52,18 +56,24 @@ export const api = {
   // sales
   createSale: (sale) => request("/sales", { method: "POST", body: JSON.stringify(sale) }),
   listSales: () => request("/sales"),
+  getSale: (saleId) => request(`/sales/${saleId}`),
+
+  deleteSaleItem: (saleId, itemId) =>
+    request(`/sales/${saleId}/items/${itemId}`, { method: "DELETE" }),
+
+  updateSaleItemQuantity: (saleId, itemId, quantity) =>
+    request(`/sales/${saleId}/items/${itemId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ quantity }),
+    }),
 
   // reports
   dailyReport: (date) => request(`/reports/daily?date=${encodeURIComponent(date)}`),
   monthlyReport: (year, month) => request(`/reports/monthly?year=${year}&month=${month}`),
   byAddressReport: (year, month) =>
-  request(`/reports/by-address?year=${year}&month=${month}`),
+    request(`/reports/by-address?year=${year}&month=${month}`),
 
   // company
-getCompany: () => request("/company"),
-saveCompany: (data) => request("/company", { method: "POST", body: JSON.stringify(data) }),
-
-/* admins */
-registerAdmin: (data) =>
-  request("/auth/register", { method: "POST", body: JSON.stringify(data) }),
+  getCompany: () => request("/company"),
+  saveCompany: (data) => request("/company", { method: "POST", body: JSON.stringify(data) }),
 };

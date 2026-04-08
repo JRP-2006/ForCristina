@@ -1,17 +1,17 @@
 import "dotenv/config";
 import bcrypt from "bcryptjs";
-import { pool } from "./db/pool.js";
+import { db } from "./db/sqlite.js";
 
-const email = "admin@confites.local";
-const password = "admin123";
+const email = "Cristina@gmail.com";
+const password = "Administrador1048"; // Cambia esto por la contraseña que quieras para el admin
 const name = "Administrador";
 
 const hash = await bcrypt.hash(password, 10);
 
-await pool.query(
-  "INSERT IGNORE INTO admins (email, password_hash, name) VALUES (?, ?, ?)",
-  [email, hash, name]
-);
+// SQLite: equivalente a INSERT IGNORE
+db.prepare(
+  "INSERT OR IGNORE INTO admins (email, password_hash, name) VALUES (?, ?, ?)"
+).run(email, hash, name);
 
 console.log("Admin seeded:");
 console.log({ email, password });
