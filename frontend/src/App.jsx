@@ -279,19 +279,19 @@ export default function App() {
             <div className="brand">
               <div className="brand-mark" aria-hidden="true" />
               <div>
-                <div className="brand-name">ForCristina</div>
+                <div className="brand-name">Rivera-SaaS</div>
                 <div className="brand-sub">Configuración inicial</div>
               </div>
             </div>
 
             <h1 className="login-h1">Datos de la empresa</h1>
             <p className="login-p">
-              Registra el nombre, RUT, teléfono y dirección para que aparezcan en la factura.
+              Registra el nombre, RUT, teléfono y dirección para que puedan aparecer en la factura.
             </p>
 
             <form onSubmit={saveCompany} className="login-form pro">
               <div className="field">
-                <label>Nombre de la empresa</label>
+                <label>Nombre de la empresa (obligatorio)</label>
                 <input
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
@@ -322,7 +322,7 @@ export default function App() {
                 <input
                   value={companyAddress}
                   onChange={(e) => setCompanyAddress(e.target.value)}
-                  placeholder="Ej: Calle 1 #2-3"
+                  placeholder="Ej: Obrero porque aqui vivo yo jjajaja"
                 />
               </div>
 
