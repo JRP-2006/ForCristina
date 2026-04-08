@@ -154,7 +154,7 @@ export default function App() {
             <div className="brand">
               <div className="brand-mark" aria-hidden="true" />
               <div>
-                <div className="brand-name">ForCristina</div>
+                <div className="brand-name">Rivera-SaaS</div>
                 <div className="brand-sub">Dashboard</div>
               </div>
             </div>
@@ -236,6 +236,7 @@ export default function App() {
                 
 
 ...
+
 <span className="muted">API:</span> <code>{API_URL}</code>
               </div>
             </form>
@@ -286,12 +287,12 @@ export default function App() {
 
             <h1 className="login-h1">Datos de la empresa</h1>
             <p className="login-p">
-              Registra el nombre, RUT, teléfono y dirección para que puedan aparecer en la factura.
+              Registra el nombre, RUT, teléfono y dirección para que aparezcan en la factura.
             </p>
 
             <form onSubmit={saveCompany} className="login-form pro">
               <div className="field">
-                <label>Nombre de la empresa (obligatorio)</label>
+                <label>Nombre de la empresa</label>
                 <input
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
@@ -322,7 +323,7 @@ export default function App() {
                 <input
                   value={companyAddress}
                   onChange={(e) => setCompanyAddress(e.target.value)}
-                  placeholder="Ej: Obrero porque aqui vivo yo jjajaja"
+                  placeholder="Ej: Calle 1 #2-3"
                 />
               </div>
 
@@ -354,7 +355,7 @@ export default function App() {
     <div className="container">
       <div className="header">
         <div>
-          <h1 style={{ margin: 0 }}>{company?.name || "ForCristina"}</h1>
+          <h1 style={{ margin: 0 }}>{company?.name || "Rivera-SaaS"}</h1>
           <div className="muted">Panel de administración</div>
         </div>
         <button className="btn secondary" onClick={logout} type="button">
