@@ -231,7 +231,11 @@ export default function App() {
 
               <div className="login-meta">
                 <span className="muted">Mes:</span> {monthLabel} •{" "}
-                <span className="muted">API:</span> <code>http://localhost:4000</code>
+                import { API_URL } from "./api"; // arriba del archivo (si no está)
+
+...
+
+<span className="muted">API:</span> <code>{API_URL}</code>
               </div>
             </form>
           </div>

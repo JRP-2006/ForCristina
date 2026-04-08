@@ -1,10 +1,11 @@
 // En local: usa .env con VITE_API_BASE_URL=http://localhost:4000/api
 // En producción (Vercel): Environment Variables -> VITE_API_BASE_URL=https://TU-BACKEND.onrender.com/api
-const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api";
-
+export const API_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api";
 export function setToken(token) {
   localStorage.setItem("token", token);
 }
+
 
 export function getToken() {
   return localStorage.getItem("token");
