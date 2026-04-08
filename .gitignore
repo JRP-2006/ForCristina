@@ -1,0 +1,17 @@
+# node
+**/node_modules/
+**/dist/
+**/build/
+
+# env / secrets
+**/.env
+**/.env.*
+
+# logs
+**/*.log
+
+# OS
+.DS_Store
+
+# Electron build output
+electron/release/

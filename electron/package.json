@@ -1,0 +1,34 @@
+{
+  "name": "forcristina-desktop",
+  "version": "1.0.0",
+  "main": "main.cjs",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "electron .",
+    "pack:win": "electron-builder --win --x64"
+  },
+  "dependencies": {
+    "electron": "^32.0.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.forcristina.desktop",
+    "productName": "ForCristina",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "../frontend/dist/**",
+      "../backend/src/**",
+      "../backend/package.json",
+      "../backend/node_modules/**"
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  }
+}
