@@ -176,7 +176,7 @@ export default function ClientsPanel() {
             })}
           </tbody>
         </table>
-        <p className="muted">Notas del cliente se mantienen (las editamos después en una vista detalle si quieres).</p>
+        <p className="muted">"Notas" es para una actualizacion futura del sistema, todavia no esta disponible la visualizacion de estas.</p>
       </section>
 
       {error && <div className="error">{error}</div>}
